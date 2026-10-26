@@ -180,17 +180,17 @@ int main(int argc, char** argv) {
   TH1D h_muon_eta1("muon_eta1",";Leading Muon #eta;Muons", 50, -2.5, 2.5);
   TH1D h_muon_eta2("muon_eta2",";Sub-Leading Muon #eta;Muons", 50, -2.5, 2.5);
 
-  TH1D h_muon_phi("muon_phi",";Muon #phi,Muons",400,-3,3);
-  TH1D h_muon_phi1("muon_phi",";Leading Muon #phi",400,-3,3);
-  TH1D h_muon_phi2("muon_phi2",";Sub-Leading Muon #phi",400,-3,3);
+  TH1D h_muon_phi("muon_phi",";Muon #phi,Muons",400,-3.0,3.0);
+  TH1D h_muon_phi1("muon_phi1",";Leading Muon #phi",400,-3.0,3.0);
+  TH1D h_muon_phi2("muon_phi2",";Sub-Leading Muon #phi",400,-3.0,3.0);
 
-  TH1D h_muon_dxy("muon_dxy",";Muon tranverse IP, ",601,-0.3,0.3);
-  TH1D h_muon_dz("muon_dz",";Muon longitudinal IP, ",601,-0.3,0.3);
-  TH1D h_muon_dxy1("muon1_dxy",";Leading Muon tranverse IP, ",601,-0.3,0.3);
-  TH1D h_muon_dz1("muon1_dz",";Leadig Muon longitudinal IP, ",601,-0.3,0.3);
-  TH1D h_muon_dxy2("muon2_dxy",";Sub_Leading Muon tranverse IP, ",601,-0.3,0.3);
-  TH1D h_muon_dz2("muon2_dz",";Sub_Leading Muon longitudinal IP, ",601,-0.3,0.3);
-  
+  TH1D h_muon_dxy("muon_dxy",";Muon tranverse IP, ",601,-0.2,0.2);
+  TH1D h_muon_dz("muon_dz",";Muon longitudinal IP, ",601,-0.2,0.2);
+  TH1D h_muon_dxy1("muon1_dxy",";Leading Muon tranverse IP, ",601,-0.2,0.2);
+  TH1D h_muon_dz1("muon1_dz",";Leadig Muon longitudinal IP, ",601,-0.2,0.2);
+  TH1D h_muon_dxy2("muon2_dxy",";Sub_Leading Muon tranverse IP, ",601,-0.2,0.2);
+  TH1D h_muon_dz2("muon2_dz",";Sub_Leading Muon longitudinal IP, ",601,-0.2,0.2);
+
   TH1D h_electron_pt("electron_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
   TH1D h_electron_pt1("electron_pt1",";Leading Electron p_{T} [GeV]; Electrons",50, 0,200);
   TH1D h_electron_pt2("electron_pt2",";Sub-Leading Electron p_{T} [GeV]; Electrons",50, 0,200);
@@ -203,12 +203,12 @@ int main(int argc, char** argv) {
   TH1D h_electron_phi1("electron_phi1",";Leading Electron #phi,Electrons",400,-3,3);
   TH1D h_electron_phi2("electron_phi2",";Sub_leading Electron #phi,Electrons",400,-3,3);
 
-  TH1D h_electron_dxy("electron_dxy",";Electron transverse IP,",601,-0.3,0.3);
-  TH1D h_electron_dz("electron_dz",";Electron longitudinal IP",601,-0.3,0.3);
-  TH1D h_electron_dxy1("electron1_dxy",";Leading Electron transverse IP,",601,-0.3,0.3);
-  TH1D h_electron_dz1("electron1_dz",";Leading Electron longitudinal IP",601,-0.3,0.3);
-  TH1D h_electron_dxy2("electron2_dxy",";Sub_Leading Electron transverse IP,",601,-0.3,0.3);
-  TH1D h_electron_dz2("electron2_dz",";Sub_Leading Electron longitudinal IP",601,-0.3,0.3);
+  TH1D h_electron_dxy("electron_dxy",";Electron transverse IP,",601,-0.2,0.2);
+  TH1D h_electron_dz("electron_dz",";Electron longitudinal IP",601,-0.2,0.2);
+  TH1D h_electron_dxy1("electron1_dxy",";Leading Electron transverse IP,",601,-0.2,0.2);
+  TH1D h_electron_dz1("electron1_dz",";Leading Electron longitudinal IP",601,-0.2,0.2);
+  TH1D h_electron_dxy2("electron2_dxy",";Sub_Leading Electron transverse IP,",601,-0.2,0.2);
+  TH1D h_electron_dz2("electron2_dz",";Sub_Leading Electron longitudinal IP",601,-0.2,0.2);
   
   TH1D h_jet_pt("jet_pt", ";Jet p_{T} [GeV];Jets", 50, 0, 300);
   TH1D h_jet_pt1("jet_pt1", ";Leading Jet p_{T} [GeV];Jets", 50, 0, 300);
@@ -219,10 +219,20 @@ int main(int argc, char** argv) {
   TH1D h_jet_eta2("jet_eta2", ";Sub-Leading Jet #eta;Jets", 50, -5, 5);
   
   TH1D h_jet_mass("jet_mass", ";Jet mass [GeV];Jets", 50, 0, 50);
-  TH1D h_jet_mass1("jet_mass", ";Leading Jet mass [GeV];Jets", 50, 0, 50);
+  TH1D h_jet_mass1("jet_mass1", ";Leading Jet mass [GeV];Jets", 50, 0, 50);
   TH1D h_jet_mass2("jet_mass2", ";Subleading Jet mass [GeV];Jets", 50, 0, 50);
 
   // Reconstructed bosons (filled once you implement the reconstruction)
+  TH1D h_Z_mass_mumu_all("Z_mass_mumu_all", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_mumu_good("Z_mass_mumu_good", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_mumu_isolated("Z_mass_mumu_isolated", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_mumu_sfos("Z_mass_mumu_sfos", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_ee_all("Z_mass_ee_all", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_ee_good("Z_mass_ee_good", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_ee_isolated("Z_mass_ee_isolated", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_ee_sfos("Z_mass_ee_sfos", ";m_{ll} [GeV];Events", 85, 70, 110);
+
+
   TH1D h_Z_mass("Z_mass", ";m_{ll} [GeV];Events", 60, 60, 120);
   TH1D h_Z_pt("Z_pt", ";p_{T}^{ll} [GeV];Events", 50, 0, 200);
   TH1D h_a_mass("a_mass", ";m_{a} [GeV];Events", 50, 0, 20);
@@ -262,13 +272,30 @@ int main(int argc, char** argv) {
     h_nElectron.Fill(Electron_pt.GetSize(), w);
     h_nJet.Fill(Jet_pt.GetSize(), w);
 
+    // define vectors of good_muons, isolated_muons
+    std::vector<TLorentzVector> all_muons;
+    std::vector<TLorentzVector> good_muons;
+    std::vector<TLorentzVector> isolated_muons;
+    std::vector<TLorentzVector> sfos_muons;
+    TLorentzVector mu;
+
+    std::vector<TLorentzVector> all_electrons;
+    std::vector<TLorentzVector> good_electrons;
+    std::vector<TLorentzVector> better_electrons;
+    std::vector<TLorentzVector> isolated_electrons;
+    std::vector<TLorentzVector> sfos_electrons;
+    TLorentzVector ele;
+    
+    // Muon for loop
     for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
+      // fill histograms with all muons
       h_muon_pt.Fill(Muon_pt[i], w);
       h_muon_eta.Fill(Muon_eta[i], w);
       h_muon_phi.Fill(Muon_phi[i],w);
       h_muon_dxy.Fill(Muon_dxy[i],w);
       h_muon_dz.Fill(Muon_dz[i],w);
 
+      // leading muon histograms
       if (i==0) {
         h_muon_pt1.Fill(Muon_pt[i], w);
         h_muon_eta1.Fill(Muon_eta[i], w);
@@ -276,6 +303,7 @@ int main(int argc, char** argv) {
         h_muon_dxy1.Fill(Muon_dxy[i],w);
         h_muon_dz1.Fill(Muon_dz[i],w);
       }
+      // subleading muon histograms
       else if (i==1) {
         h_muon_pt2.Fill(Muon_pt[i],w);
         h_muon_eta2.Fill(Muon_eta[i], w);
@@ -283,8 +311,25 @@ int main(int argc, char** argv) {
         h_muon_dxy2.Fill(Muon_dxy[i],w);
         h_muon_dz2.Fill(Muon_dz[i],w);
       }
+
+      // preparation for Z reconstruction: save all muon four momenta to vectors (data containers)
+      mu.SetPtEtaPhiM(Muon_pt[i],Muon_eta[i],Muon_phi[i],Muon_mass[i]);
+      // save all muon four vectors
+      all_muons.push_back(mu); // Check for charge 
+      // check pt and eta
+      if (Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.5) {
+        good_muons.push_back(mu);
+        // check isolation
+        if (Muon_pfRelIso04_all[i] < 0.15){
+          isolated_muons.push_back(mu);
+          if(Muon_charge[0]*Muon_charge[1] < 0){
+            sfos_muons.push_back(mu);
+          }
+        }
+      }
     }
     
+    //Electron for loop 
     for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
       h_electron_pt.Fill(Electron_pt[i], w);
       h_electron_eta.Fill(Electron_eta[i], w);
@@ -293,19 +338,36 @@ int main(int argc, char** argv) {
       h_electron_dz.Fill(Electron_dz[i],w);
 
       if(i==0) {
-        h_electron_pt1.Fill(Muon_pt[i], w);
-        h_electron_eta1.Fill(Muon_eta[i], w);
+        h_electron_pt1.Fill(Electron_pt[i], w);
+        h_electron_eta1.Fill(Electron_eta[i], w);
         h_electron_phi1.Fill(Electron_phi[i],w);
         h_electron_dxy1.Fill(Electron_dxy[i],w);
         h_electron_dz1.Fill(Electron_dz[i],w);
       }
       else if (i==1) {
-        h_electron_pt2.Fill(Muon_pt[i],w);
-        h_electron_eta2.Fill(Muon_eta[i], w);
+        h_electron_pt2.Fill(Electron_pt[i],w);
+        h_electron_eta2.Fill(Electron_eta[i], w);
         h_electron_phi2.Fill(Electron_phi[i],w);
         h_electron_dxy2.Fill(Electron_dxy[i],w);
         h_electron_dz2.Fill(Electron_dz[i],w);
       }
+
+      // preparation for Z reconstruction: save all electron four momenta to vectors (data containers)
+      ele.SetPtEtaPhiM(Electron_pt[i],Electron_eta[i],Electron_phi[i],Electron_mass[i]); //Electron mass were a bit sketchy, maybe hard code it 
+      // save all electron four vectors
+      all_electrons.push_back(ele);
+
+      // check pt and eta
+      if (Electron_pt[i] > 28 && std::abs(Electron_eta[i]) < 2.5) {
+        good_electrons.push_back(ele);
+        // check isolation
+        if (Electron_pfRelIso03_all[i] < 0.15) {
+          isolated_electrons.push_back(ele);
+          if (Electron_charge[0]*Electron_charge[1] < 0) {
+            sfos_electrons.push_back(ele);
+          }
+        }
+      } 
     }
     for (size_t i = 0; i < Jet_pt.GetSize(); ++i) {
       h_jet_pt.Fill(Jet_pt[i], w);
@@ -351,7 +413,54 @@ int main(int argc, char** argv) {
     //TLorentzVector a;
     bool hasZ = false, hasA = false;
 
+    TLorentzVector Z_mumu_all;
+    if (all_muons.size() >= 2) {
+      Z_mumu_all = all_muons[0] + all_muons[1];
+      h_Z_mass_mumu_all.Fill(Z_mumu_all.M());
+    }
 
+    TLorentzVector Z_mumu_good;
+    if (good_muons.size() >= 2) {
+      Z_mumu_good = good_muons[0] + good_muons[1];
+      h_Z_mass_mumu_good.Fill(Z_mumu_good.M());
+    }
+
+    TLorentzVector Z_mumu_isolated;
+    if (isolated_muons.size() >= 2) {
+      Z_mumu_isolated = isolated_muons[0] + isolated_muons[1];
+      h_Z_mass_mumu_isolated.Fill(Z_mumu_isolated.M());
+    }
+    
+    TLorentzVector Z_mumu_sfos;
+    if (sfos_muons.size() >= 2) {
+      Z_mumu_sfos = sfos_muons[0] + sfos_muons[1];
+      h_Z_mass_mumu_sfos.Fill(Z_mumu_sfos.M());
+    }
+
+    TLorentzVector Z_ee_all;
+    if (all_electrons.size() >= 2) {
+      Z_ee_all = all_electrons[0] + all_electrons[1];
+      h_Z_mass_ee_all.Fill(Z_ee_all.M());
+
+    TLorentzVector Z_ee_good;
+    if (good_electrons.size() >= 2) {
+      Z_ee_good = good_electrons[0] + good_electrons[1];
+      h_Z_mass_ee_good.Fill(Z_ee_good.M());
+    }
+
+    TLorentzVector Z_ee_isolated;
+    if (isolated_electrons.size() >= 2) {
+      Z_ee_isolated = isolated_electrons[0] + isolated_electrons[1];
+      h_Z_mass_ee_isolated.Fill(Z_ee_isolated.M());
+    }
+
+    TLorentzVector Z_ee_sfos;
+    if (sfos_electrons.size() >= 2) {
+      Z_ee_sfos = sfos_electrons[0] + sfos_electrons[1];
+      h_Z_mass_ee_sfos.Fill(Z_ee_sfos.M());
+    }
+
+  
 
     // ... your code here ...
 
