@@ -181,10 +181,15 @@ int main(int argc, char** argv) {
   TH1D h_muon_eta2("muon_eta2",";Sub-Leading Muon #eta;Muons", 50, -2.5, 2.5);
 
   TH1D h_muon_phi("muon_phi",";Muon #phi,Muons",400,-3,3);
-  //TH1D h_muon_phi1("muon_phi",";Leading Muon #phi",40)
+  TH1D h_muon_phi1("muon_phi",";Leading Muon #phi",400,-3,3);
+  TH1D h_muon_phi2("muon_phi2",";Sub-Leading Muon #phi",400,-3,3);
 
   TH1D h_muon_dxy("muon_dxy",";Muon tranverse IP, ",601,-0.3,0.3);
   TH1D h_muon_dz("muon_dz",";Muon longitudinal IP, ",601,-0.3,0.3);
+  TH1D h_muon_dxy1("muon1_dxy",";Leading Muon tranverse IP, ",601,-0.3,0.3);
+  TH1D h_muon_dz1("muon1_dz",";Leadig Muon longitudinal IP, ",601,-0.3,0.3);
+  TH1D h_muon_dxy2("muon2_dxy",";Sub_Leading Muon tranverse IP, ",601,-0.3,0.3);
+  TH1D h_muon_dz2("muon2_dz",";Sub_Leading Muon longitudinal IP, ",601,-0.3,0.3);
   
   TH1D h_electron_pt("electron_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
   TH1D h_electron_pt1("electron_pt1",";Leading Electron p_{T} [GeV]; Electrons",50, 0,200);
@@ -195,9 +200,15 @@ int main(int argc, char** argv) {
   TH1D h_electron_eta2("electron_eta2", ";Sub-leading Electron #eta;Electrons", 50, -2.5, 2.5);
 
   TH1D h_electron_phi("electron_phi",";Electron #phi,Electrons",400,-3,3);
+  TH1D h_electron_phi1("electron_phi1",";Leading Electron #phi,Electrons",400,-3,3);
+  TH1D h_electron_phi2("electron_phi2",";Sub_leading Electron #phi,Electrons",400,-3,3);
 
   TH1D h_electron_dxy("electron_dxy",";Electron transverse IP,",601,-0.3,0.3);
   TH1D h_electron_dz("electron_dz",";Electron longitudinal IP",601,-0.3,0.3);
+  TH1D h_electron_dxy1("electron1_dxy",";Leading Electron transverse IP,",601,-0.3,0.3);
+  TH1D h_electron_dz1("electron1_dz",";Leading Electron longitudinal IP",601,-0.3,0.3);
+  TH1D h_electron_dxy2("electron2_dxy",";Sub_Leading Electron transverse IP,",601,-0.3,0.3);
+  TH1D h_electron_dz2("electron2_dz",";Sub_Leading Electron longitudinal IP",601,-0.3,0.3);
   
   TH1D h_jet_pt("jet_pt", ";Jet p_{T} [GeV];Jets", 50, 0, 300);
   TH1D h_jet_pt1("jet_pt1", ";Leading Jet p_{T} [GeV];Jets", 50, 0, 300);
@@ -261,10 +272,16 @@ int main(int argc, char** argv) {
       if (i==0) {
         h_muon_pt1.Fill(Muon_pt[i], w);
         h_muon_eta1.Fill(Muon_eta[i], w);
+        h_muon_phi1.Fill(Muon_phi[i],w);
+        h_muon_dxy1.Fill(Muon_dxy[i],w);
+        h_muon_dz1.Fill(Muon_dz[i],w);
       }
       else if (i==1) {
         h_muon_pt2.Fill(Muon_pt[i],w);
         h_muon_eta2.Fill(Muon_eta[i], w);
+        h_muon_phi2.Fill(Muon_phi[i],w);
+        h_muon_dxy2.Fill(Muon_dxy[i],w);
+        h_muon_dz2.Fill(Muon_dz[i],w);
       }
     }
     
@@ -278,10 +295,16 @@ int main(int argc, char** argv) {
       if(i==0) {
         h_electron_pt1.Fill(Muon_pt[i], w);
         h_electron_eta1.Fill(Muon_eta[i], w);
+        h_electron_phi1.Fill(Electron_phi[i],w);
+        h_electron_dxy1.Fill(Electron_dxy[i],w);
+        h_electron_dz1.Fill(Electron_dz[i],w);
       }
       else if (i==1) {
         h_electron_pt2.Fill(Muon_pt[i],w);
         h_electron_eta2.Fill(Muon_eta[i], w);
+        h_electron_phi2.Fill(Electron_phi[i],w);
+        h_electron_dxy2.Fill(Electron_dxy[i],w);
+        h_electron_dz2.Fill(Electron_dz[i],w);
       }
     }
     for (size_t i = 0; i < Jet_pt.GetSize(); ++i) {
@@ -332,20 +355,20 @@ int main(int argc, char** argv) {
 
     // ... your code here ...
 
-    if (!hasZ) continue;
-    h_cutflow.Fill(2.5, w);
-    h_Z_mass.Fill(Z.M(), w);
-    h_Z_pt.Fill(Z.Pt(), w);
+    // if (!hasZ) continue;
+    // h_cutflow.Fill(2.5, w);
+    // h_Z_mass.Fill(Z.M(), w);
+    // h_Z_pt.Fill(Z.Pt(), w);
 
-    if (!hasA) continue;
-    h_cutflow.Fill(3.5, w);
-    h_a_mass.Fill(a.M(), w);
-    h_a_pt.Fill(a.Pt(), w);
+    // if (!hasA) continue;
+    // h_cutflow.Fill(3.5, w);
+    // h_a_mass.Fill(a.M(), w);
+    // h_a_pt.Fill(a.Pt(), w);
 
-    H = Z + a;
-    h_cutflow.Fill(4.5, w);
-    h_H_mass.Fill(H.M(), w);
-    h_H_pt.Fill(H.Pt(), w);
+    // H = Z + a;
+    // h_cutflow.Fill(4.5, w);
+    // h_H_mass.Fill(H.M(), w);
+    // h_H_pt.Fill(H.Pt(), w);
   }
 
   // --------------------------------------------------------------------------
