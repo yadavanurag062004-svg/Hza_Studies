@@ -141,6 +141,14 @@ int main(int argc, char** argv) {
   TTreeReaderArray<Float_t> Electron_pfRelIso03_all(reader, "Electron_pfRelIso03_all");
   TTreeReaderArray<Float_t> Electron_dxy(reader,"Electron_dxy");
   TTreeReaderArray<Float_t> Electron_dz(reader,"Electron_dz");
+  // GenParts 
+  TTreeReaderArray<Float_t> GenPart_pt(reader,"GenPart_pt");
+  TTreeReaderArray<Float_t> GenPart_eta(reader,"GenPart_eta");
+  TTreeReaderArray<Float_t> GenPart_phi(reader,"GenPart_phi");
+  TTreeReaderArray<Float_t> GenPart_mass(reader,"GenPart_mass");
+  TTreeReaderArray<Int_t> GenPart_status(reader,"GenPart_status");
+  TTreeReaderArray<Int_t> GenPart_pdgId(reader,"GenPart_pdgId");
+  TTreeReaderArray<Short_t> GenPart_genPartIdxMother(reader, "GenPart_genPartIdxMother");
 
  /*  // GenParts 
   GenPart_genPartIdxMother                                                                 "index of the mother particle, z boson 23"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               119306
@@ -221,6 +229,11 @@ int main(int argc, char** argv) {
   TH1D h_electron_dxy2("electron2_dxy",";Sub_Leading Electron transverse IP,",601,-0.2,0.2);
   TH1D h_electron_dz2("electron2_dz",";Sub_Leading Electron longitudinal IP",601,-0.2,0.2);
   
+
+  TH1D h_genpart_pt("genpart_pt", ";GenPart p_{T} [GeV];GenParts", 50, 0, 200);
+  TH1D h_genpart_phi("genpart_phi", ";GenPart p_{T} [GeV];GenParts", 400, -3.0, 3.0);
+  TH1D h_genpart_eta("genpart_eta", ";GenPart p_{T} [GeV];GenParts", 50, -2.5, 2.5);
+
   TH1D h_jet_pt("jet_pt", ";Jet p_{T} [GeV];Jets", 50, 0, 300);
   TH1D h_jet_pt1("jet_pt1", ";Leading Jet p_{T} [GeV];Jets", 50, 0, 300);
   TH1D h_jet_pt2("jet_pt2", ";Sub-Leading Jet p_{T} [GeV];Jets", 50, 0, 300);
@@ -242,6 +255,7 @@ int main(int argc, char** argv) {
   TH1D h_Z_mass_ee_good("Z_mass_ee_good", ";m_{ll} [GeV];Events", 85, 70, 110);
   TH1D h_Z_mass_ee_isolated("Z_mass_ee_isolated", ";m_{ll} [GeV];Events", 85, 70, 110);
   TH1D h_Z_mass_ee_sfos("Z_mass_ee_sfos", ";m_{ll} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_mass_Gen_ee_good("Z_mass_Gen_ee_good",";m_{ll} [GeV];Events", 85, 70, 110);
 
 
   TH1D h_Z_mass("Z_mass", ";m_{ll} [GeV];Events", 60, 60, 120);
@@ -296,7 +310,13 @@ int main(int argc, char** argv) {
     std::vector<TLorentzVector> isolated_electrons;
     std::vector<TLorentzVector> sfos_electrons;
     TLorentzVector ele;
-    
+
+    std::vector<TLorentzVector> GenPartlept;
+    std::vector<TLorentzVector> GenPartMother;
+    std::vector<TLorentzVector> all_GPelectron;
+    std::vector<TLorentzVector> good_GPelectron;
+    TLorentzVector gele;
+
     // Muon for loop
     for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
       // fill histograms with all muons
@@ -380,6 +400,28 @@ int main(int argc, char** argv) {
         }
       } 
     }
+
+    // GenPart
+    for (size_t i = 0; i < GenPart_status.GetSize(); ++i) {
+      if (GenPart_status[i]==1) {
+        int GenStablePart = GenPart_status[i];
+
+        if (abs(GenPart_pdgId[i]) == 11) {
+          GenPartlept.push_back(gele);
+
+          if (GenPart_genPartIdxMother[i] == 23){
+            GenPartMother.push_back(ele);
+          }
+        }
+      gele.SetPtEtaPhiE(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+      // save all muon four vectors
+      all_GPelectron.push_back(gele); 
+      // check pt and eta
+      if (GenPart_pt[i] > 28 && std::abs(GenPart_eta[i]) < 2.5) {
+        good_GPelectron.push_back(gele);
+      }
+    }
+    }
     for (size_t i = 0; i < Jet_pt.GetSize(); ++i) {
       h_jet_pt.Fill(Jet_pt[i], w);
       h_jet_eta.Fill(Jet_eta[i], w);
@@ -430,6 +472,12 @@ int main(int argc, char** argv) {
       h_Z_mass_mumu_all.Fill(Z_mumu_all.M());
     }
 
+    TLorentzVector Z_Gen_ee_good;
+    if (good_GPelectron.size() >=2){
+      Z_Gen_ee_good = good_GPelectron[0] + good_GPelectron[1];
+      h_Z_mass_Gen_ee_good.Fill(Z_Gen_ee_good.M());
+    }
+
     TLorentzVector Z_mumu_good;
     if (good_muons.size() >= 2) {
       Z_mumu_good = good_muons[0] + good_muons[1];
@@ -452,6 +500,7 @@ int main(int argc, char** argv) {
     if (all_electrons.size() >= 2) {
       Z_ee_all = all_electrons[0] + all_electrons[1];
       h_Z_mass_ee_all.Fill(Z_ee_all.M());
+    }
 
     TLorentzVector Z_ee_good;
     if (good_electrons.size() >= 2) {
