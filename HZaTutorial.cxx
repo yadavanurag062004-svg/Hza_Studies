@@ -37,6 +37,19 @@ float DeltaPhi(float phi1, float phi2) {
   return TVector2::Phi_mpi_pi(phi1 - phi2);
 }
 
+
+int FindZMother (short idx, TTreeReaderArray<Int_t> &GenPart_pdgId, TTreeReaderArray<Short_t> &GenPart_genPartIdxMother) {
+  int genpart_pdgid = GenPart_pdgId[idx];
+  int mother_pdgid = GenPart_pdgId[GenPart_genPartIdxMother[idx]];
+  if (genpart_pdgid == mother_pdgid) {
+    idx = GenPart_genPartIdxMother[idx];
+    return FindZMother(idx, GenPart_pdgId, GenPart_genPartIdxMother);
+  } else if (abs(mother_pdgid) == 23) {
+    return GenPart_genPartIdxMother[idx];
+  }
+  else return -1;
+}
+
 float DeltaR(float eta1, float phi1, float eta2, float phi2) {
   float deta = eta1 - eta2;
   float dphi = DeltaPhi(phi1, phi2);
@@ -137,7 +150,7 @@ int main(int argc, char** argv) {
   TTreeReaderArray<Float_t> Electron_phi(reader, "Electron_phi");
   TTreeReaderArray<Float_t> Electron_mass(reader, "Electron_mass");
   TTreeReaderArray<Int_t>   Electron_charge(reader, "Electron_charge");
-  TTreeReaderArray<UChar_t> Electron_cutBased(reader, "Electron_cutBased");
+  TTreeReaderArray<Bool_t>  Electron_mvaIso_WP90(reader, "Electron_mvaIso_WP90");
   TTreeReaderArray<Float_t> Electron_pfRelIso03_all(reader, "Electron_pfRelIso03_all");
   TTreeReaderArray<Float_t> Electron_dxy(reader,"Electron_dxy");
   TTreeReaderArray<Float_t> Electron_dz(reader,"Electron_dz");
@@ -209,10 +222,15 @@ int main(int argc, char** argv) {
   TH1D h_muon_dz1("muon1_dz",";Leadig Muon longitudinal IP, ",601,-0.2,0.2);
   TH1D h_muon_dxy2("muon2_dxy",";Sub_Leading Muon tranverse IP, ",601,-0.2,0.2);
   TH1D h_muon_dz2("muon2_dz",";Sub_Leading Muon longitudinal IP, ",601,-0.2,0.2);
+  TH1D h_good_muon_dxy("good_muon_dxy","; Good Muon transverse IP, ",1001,-0.2,0.2);
+  TH1D h_good_muon_dz("good_muon_dz","; Good Muon longitudinal IP, ",601,-0.2,0.2);
+
 
   TH1D h_electron_pt("electron_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
   TH1D h_electron_pt1("electron_pt1",";Leading Electron p_{T} [GeV]; Electrons",50, 0,200);
   TH1D h_electron_pt2("electron_pt2",";Sub-Leading Electron p_{T} [GeV]; Electrons",50, 0,200);
+  TH1D h_good_electron_dxy("good_electron_dxy","; Good Electron transverse IP, ",1001,-0.2,0.2);
+  TH1D h_good_electron_dz("good_electron_dz","; Good Electron transverse IP, ",601,-0.2,0.2);
 
   TH1D h_electron_eta("electron_eta", ";Electron #eta;Electrons", 50, -2.5, 2.5);
   TH1D h_electron_eta1("electron_eta1", ";Leading Electron #eta;Electrons", 50, -2.5, 2.5);
@@ -348,7 +366,10 @@ int main(int argc, char** argv) {
       // save all muon four vectors
       all_muons.push_back(mu); // Check for charge 
       // check pt and eta
-      if (Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.5) {
+      if (Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.5 && Muon_tightId[i] == true) {
+        h_good_muon_dxy.Fill(Muon_dxy[i],w);
+        h_good_muon_dz.Fill(Muon_dz[i],w);
+        // TODO: fill new good muon mu_dxy and d_z histos
         good_muons.push_back(mu);
         // check isolation
         if (Muon_pfRelIso04_all[i] < 0.15){
@@ -357,7 +378,7 @@ int main(int argc, char** argv) {
             sfos_muons.push_back(mu);
           }
         }
-      }
+      } 
     }
     
     //Electron for loop 
@@ -389,39 +410,43 @@ int main(int argc, char** argv) {
       all_electrons.push_back(ele);
 
       // check pt and eta
-      if (Electron_pt[i] > 28 && std::abs(Electron_eta[i]) < 2.5) {
-        good_electrons.push_back(ele);
-        // check isolation
-        if (Electron_pfRelIso03_all[i] < 0.15) {
-          isolated_electrons.push_back(ele);
-          if (Electron_charge[0]*Electron_charge[1] < 0) {
-            sfos_electrons.push_back(ele);
+      if (Electron_mvaIso_WP90[i] == true){
+        if (Electron_pt[i] > 28 && std::abs(Electron_eta[i]) < 2.5 && Electron_mvaIso_WP90[i] && Electron_dxy[i] < 0.05 && Electron_dz[i] < 0.10 ) { // TODO: add impact parameter cuts for  barrel electrons from  https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun3
+          h_good_electron_dxy.Fill(Electron_dxy[i],w);
+          h_good_electron_dz.Fill(Electron_dz[i],w); // TODO: fill new good muon mu_dxy and d_z histos
+          good_electrons.push_back(ele);
+          // check isolation
+          if (Electron_pfRelIso03_all[i] < 0.15 && Electron_mvaIso_WP90[i]) {
+            isolated_electrons.push_back(ele);
+            if (Electron_charge[0]*Electron_charge[1] < 0) {
+              sfos_electrons.push_back(ele);
+            }
           }
-        }
-      } 
-    }
-
-    // GenPart
-    for (size_t i = 0; i < GenPart_status.GetSize(); ++i) {
-      if (GenPart_status[i]==1) {
-        int GenStablePart = GenPart_status[i];
-
-        if (abs(GenPart_pdgId[i]) == 11) {
-          GenPartlept.push_back(gele);
-
-          if (GenPart_genPartIdxMother[i] == 23){
-            GenPartMother.push_back(ele);
-          }
-        }
-      gele.SetPtEtaPhiE(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
-      // save all muon four vectors
-      all_GPelectron.push_back(gele); 
-      // check pt and eta
-      if (GenPart_pt[i] > 28 && std::abs(GenPart_eta[i]) < 2.5) {
-        good_GPelectron.push_back(gele);
+        } 
       }
     }
+
+    // GenPart 
+    for (size_t i = 0; i < GenPart_status.GetSize(); ++i) {
+      if (std::abs(GenPart_pdgId[i]) == 11) {
+        // GenPart coming from Z 
+        short idx = i;
+        if (FindZMother(idx, GenPart_pdgId, GenPart_genPartIdxMother) > 0) {
+          h_genpart_pt.Fill(GenPart_pt[i], w);
+          h_genpart_eta.Fill(GenPart_eta[i], w);
+          h_genpart_phi.Fill(GenPart_phi[i],w);
+        }
+        gele.SetPtEtaPhiE(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+          // save all muon four vectors
+        all_GPelectron.push_back(gele); 
+          // check pt and eta
+        if (GenPart_pt[i] > 28 && std::abs(GenPart_eta[i]) < 2.5) {
+          good_GPelectron.push_back(gele);
+        }
+      }
     }
+
+  
     for (size_t i = 0; i < Jet_pt.GetSize(); ++i) {
       h_jet_pt.Fill(Jet_pt[i], w);
       h_jet_eta.Fill(Jet_eta[i], w);
@@ -539,6 +564,8 @@ int main(int argc, char** argv) {
     // h_H_mass.Fill(H.M(), w);
     // h_H_pt.Fill(H.Pt(), w);
   }
+
+
 
   // --------------------------------------------------------------------------
   // Write output
