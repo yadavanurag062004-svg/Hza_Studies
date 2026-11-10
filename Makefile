@@ -6,9 +6,12 @@ ROOTLIBS  = $(shell root-config --glibs)
 
 # Defaults for `make run` â€” override on the command line, e.g.
 #   make run FILELIST=../configs/filelists/signal_mA2p0GeV.txt NEVENTS=1000
-FILELIST ?= signal_mA1p0GeV.txt
+# FILELIST ?= signal_mA1p0GeV.txt
 # FILELIST ?= signal_mA1p0GeV_laptop.txt
-OUTPUT   ?= tutorial_output.root
+FILELIST ?= btv.txt
+
+
+OUTPUT   ?= bkg_tutorial_output.root
 NEVENTS  ?= -1
 NFILES   ?= -1
 

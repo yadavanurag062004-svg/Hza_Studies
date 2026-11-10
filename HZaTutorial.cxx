@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
 // ----------------------------------------------------------------------------
 // Configuration (RunIII2024Summer24 MC)
 // ----------------------------------------------------------------------------
@@ -441,7 +440,7 @@ int main(int argc, char** argv) {
 
       // check pt and eta
       if (Electron_mvaIso_WP90[i] == true){
-        if (Electron_pt[i] > 28 && std::abs(Electron_eta[i]) < 2.5 && Electron_mvaIso_WP90[i] && Electron_dxy[i] < 0.05 && Electron_dz[i] < 0.10 ) { // TODO: add impact parameter cuts for  barrel electrons from  https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun3
+        if (Electron_pt[i] > 28 && std::abs(Electron_eta[i]) < 2.5 && Electron_mvaIso_WP90[i] && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 ) { // TODO: add impact parameter cuts for  barrel electrons from  https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun3
           h_good_electron_dxy.Fill(Electron_dxy[i],w);
           h_good_electron_dz.Fill(Electron_dz[i],w); // TODO: fill new good muon mu_dxy and d_z histos
           good_electrons.push_back(ele);
