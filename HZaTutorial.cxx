@@ -12,6 +12,7 @@
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 #include <TVector2.h>
+#include <TEfficiency.h> 
 
 #include <cmath>
 #include <fstream>
@@ -207,6 +208,8 @@ int main(int argc, char** argv) {
   TH1D h_muon_pt("muon_pt", ";Muon p_{T} [GeV];Muons", 50, 0, 200);
   TH1D h_muon_pt1("muon_pt1",";Leading Muon p_{T} [GeV];Muons", 50, 0, 200);
   TH1D h_muon_pt2("muon_pt2",";Sub-Leading Muon p_{T} [GeV];Muons", 50, 0, 200);
+  TH1D h_good_muon_pt("good_muon_pt","; Good Muon p_{T} [GeV];Muons", 50, 0, 200);
+  TH1D h_good_muon_eta("good_muon_eta","; Good Muon #eta;Muons", 50, -2.5, 2.5);
 
   TH1D h_muon_eta("muon_eta", ";Muon #eta;Muons", 50, -2.5, 2.5);
   TH1D h_muon_eta1("muon_eta1",";Leading Muon #eta;Muons", 50, -2.5, 2.5);
@@ -259,7 +262,29 @@ int main(int argc, char** argv) {
   TH1D h_genpart_Z_phi("genpart_Z_phi", ";GenPart p_{T} [GeV];GenParts", 400, -3.0, 3.0);
   TH1D h_genpart_Z_eta("genpart_Z_eta", ";GenPart p_{T} [GeV];GenParts", 50, -2.5, 2.5);
 
+  TH1D h_Acc_gel_pt("Acc_gel_pt", ";GenPart p_{T} [GeV];GenParts", 50, 0, 200);
+  TH1D h_Acc_gel_eta("Acc_gel_eta", ";GenPart #eta;GenParts", 50, -2.5, 2.5);
+  TH1D h_Acc_gmu_pt("Acc_gmu_pt", ";GenPart p_{T} [GeV];GenParts", 50, 0, 200);
+  TH1D h_Acc_gmu_eta("Acc_gmu_eta", ";GenPart #eta;GenParts", 50, -2.5, 2.5);
+
   TH1D h_Gen_Z_mass("Gen_Z_mass", ";m_{ll} [GeV];Events", 85, 70, 110);
+
+  // Acceptance and efficiency
+  TH1D h_all_ele_pt("All_ele_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
+  TH1D h_gen_matched_ele_pt("Gen_matched_ele_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
+  TH1D h_gen_selected_ele_pt("Gen_selected_ele_pt", ";Electron p_{T} [GeV];Electrons", 50, 0, 200);
+
+  TH1D h_all_ele_eta("All_ele_eta", ";Electron #eta;Electrons", 50, -2.5, 2.5);
+  TH1D h_gen_matched_ele_eta("Gen_matched_ele_eta", ";Electron #eta;Electrons", 50, -2.5, 2.5);
+  TH1D h_gen_selected_ele_eta("Gen_selected_ele_eta", ";Electron #eta;Electrons", 50, -2.5, 2.5);
+
+  TH1D h_all_mu_pt("All_muon_pt", ";Muon p_{T} [GeV];Muons", 50, 0, 200);
+  TH1D h_gen_matched_mu_pt("Gen_matched_muon_pt", ";Muon p_{T} [GeV];Muons", 50, 0, 200);
+  TH1D h_gen_selected_mu_pt("Gen_selected_muon_pt", ";Muon p_{T} [GeV];Muons", 50, 0, 200);
+
+  TH1D h_all_mu_eta("All_muon_eta", ";Muon #eta;Muons", 50, -2.5, 2.5);
+  TH1D h_gen_matched_mu_eta("Gen_matched_muon_eta", ";Muon #eta;Muons", 50, -2.5, 2.5);
+  TH1D h_gen_selected_mu_eta("Gen_selected_muon_eta", ";Muon #eta;Muons", 50, -2.5, 2.5);
 
   TH1D h_jet_pt("jet_pt", ";Jet p_{T} [GeV];Jets", 50, 0, 300);
   TH1D h_jet_pt1("jet_pt1", ";Leading Jet p_{T} [GeV];Jets", 50, 0, 300);
@@ -364,6 +389,8 @@ int main(int argc, char** argv) {
     std::vector<TLorentzVector> good_jets;
     TLorentzVector jet;
 
+
+    // Electron combinatorics for Mz:
     // Muon for loop
     for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
       // fill histograms with all muons
@@ -398,6 +425,8 @@ int main(int argc, char** argv) {
       if (Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.5 && Muon_tightId[i] == true) {
         h_good_muon_dxy.Fill(Muon_dxy[i],w);
         h_good_muon_dz.Fill(Muon_dz[i],w);
+        h_good_muon_pt.Fill(Muon_pt[i],w);
+        h_good_muon_eta.Fill(Muon_eta[i],w);
         // TODO: fill new good muon mu_dxy and d_z histos
         good_muons.push_back(mu);
         // check isolation
@@ -503,7 +532,7 @@ int main(int argc, char** argv) {
         h_Gen_Z_mass.Fill(gZ.M(), w);
       }
     }
-    
+    // Jets 
     for (size_t i = 0; i < Jet_pt.GetSize(); ++i) {
       h_jet_pt.Fill(Jet_pt[i], w);
       h_jet_eta.Fill(Jet_eta[i], w);
@@ -535,6 +564,84 @@ int main(int argc, char** argv) {
         good_jets.push_back(jet);
       }
     }
+    
+    // Acceptance & Efficiency
+
+    // Electron loop
+    // Reco electron: no cuts
+    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      h_all_ele_pt.Fill(Electron_pt[i], w);
+      h_all_ele_eta.Fill(Electron_eta[i], w);
+    }
+
+    // Reco Electron + ID cuts + Gen electrons
+    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      bool matched = false;
+       if (Electron_mvaIso_WP90[i] == true && Electron_pt[i] > 25 && std::abs(Electron_eta[i]) < 2.5 && Electron_mvaIso_WP90[i] && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 ){
+          for (size_t j = 0; j < GenPart_pt.GetSize(); ++j) {
+            if (std::abs(GenPart_pdgId[j]) != 11 || std::abs(GenPart_status[j]) != 1 || GenPart_pt[j] < 5 || std::abs(GenPart_eta[i]) > 2.5)
+            continue;
+            double dR = DeltaR(Electron_eta[i], Electron_phi[i],GenPart_eta[j], GenPart_phi[j]);
+            if (dR < 0.3) {
+            matched = true;
+            break;
+          }
+        }
+         if (matched) {
+          h_gen_selected_ele_pt.Fill(Electron_pt[i], w);
+          h_gen_selected_ele_eta.Fill(Electron_eta[i], w);
+        }
+      } 
+      
+    }
+
+    // Reconstructed electrons + Gen electrons
+    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      bool matched = false;
+      for (size_t j = 0; j < GenPart_pt.GetSize(); ++j) {
+        if (std::abs(GenPart_pdgId[j]) != 11 || std::abs(GenPart_status[j]) != 1)
+        continue;
+        double dR = DeltaR(Electron_eta[i], Electron_phi[i],GenPart_eta[j], GenPart_phi[j]);
+          if (dR < 0.3) {
+            matched = true;
+            break;
+          }
+        }
+
+        if (matched) {
+        h_gen_matched_ele_pt.Fill(Electron_pt[i], w);
+        h_gen_matched_ele_eta.Fill(Electron_eta[i], w);
+      }
+    }
+
+    // Muon loop
+    for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
+      // no cuts
+      h_all_mu_pt.Fill(Muon_pt[i], w);
+      h_all_mu_eta.Fill(Muon_eta[i], w);
+    
+      // gen matched (for acceptance)
+      bool matched = false;
+      for (size_t j = 0; j < GenPart_pt.GetSize(); ++j) {
+        if (std::abs(GenPart_pdgId[j]) != 13 || std::abs(GenPart_status[j]) != 1 || GenPart_pt[j] < 5 || std::abs(GenPart_eta[j]) > 2.5)
+        continue;
+        double dR = DeltaR(Muon_eta[i], Muon_phi[i],GenPart_eta[j], GenPart_phi[j]);
+        if (dR < 0.3) {
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) continue;
+      // if matched, fill histograms for selected muons (for acceptance and efficiency)
+      h_gen_matched_mu_pt.Fill(Muon_pt[i], w);
+      h_gen_matched_mu_eta.Fill(Muon_eta[i], w);
+
+      if (!(Muon_tightId[i] == true && Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.4 && Muon_pfRelIso04_all[i] < 0.15)) continue;
+      // if pass selection, fill histograms for selected muons (efficiency)
+      h_gen_selected_mu_pt.Fill(Muon_pt[i], w);
+      h_gen_selected_mu_eta.Fill(Muon_eta[i], w);
+    }
+    
     // Example: build a four-vector of a muon
     //   TLorentzVector mu;
     //   mu.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
@@ -633,16 +740,16 @@ int main(int argc, char** argv) {
       a_good_jets = good_jets[0] + good_jets[1];
       h_a_good_jets.Fill(a_good_jets.M(), w);
     }
-
+    
     TLorentzVector H_mumu_good_jet;
     H_mumu_good_jet = Z_mumu_sfos + a_good_jets;
-    if (H_mumu_good_jet.M() > 110 && H_mumu_good_jet.M() < 140) {
+    if (H_mumu_good_jet.M() > 110 && H_mumu_good_jet.M() < 140 && abs(a_good_jets.Phi() - Z_mumu_sfos.Phi()) > 1.57) {
       h_H_mumu.Fill(H_mumu_good_jet.M(), w);
     }
 
     TLorentzVector H_ee_good_jet;
     H_ee_good_jet = Z_ee_sfos + a_good_jets;
-    if (H_ee_good_jet.M() > 110 && H_ee_good_jet.M() < 200) {
+    if (H_ee_good_jet.M() > 110 && H_ee_good_jet.M() < 140 && abs(a_good_jets.Phi() - Z_ee_sfos.Phi()) > 1.57) {
       h_H_ee.Fill(H_ee_good_jet.M(), w);
     }
 
@@ -666,9 +773,40 @@ int main(int argc, char** argv) {
     // h_H_mass.Fill(H.M(), w);
     // h_H_pt.Fill(H.Pt(), w);
   }
+  // Accepatnce and efficiency histograms 
+  //Electrons 
+  TH1D *h_accept_el = (TH1D*)h_gen_matched_ele_pt.Clone("Acceptance_electrons");
+  h_accept_el->Divide(&h_all_ele_pt);
 
+  TH1D *h_efficent_el= (TH1D*)h_gen_selected_ele_pt.Clone("Efficiency_electrons");
+  h_efficent_el->Divide(&h_gen_matched_ele_pt);
 
+  TH1D *h_acc_eff_el = (TH1D*)h_gen_selected_ele_pt.Clone("Acceptance x Efficiency_electrons");
+  h_acc_eff_el->Divide(&h_all_ele_pt);
 
+  // Muons
+  TH1D *h_accept_mu = (TH1D*)h_gen_matched_mu_pt.Clone("Acceptance_muons");
+  h_accept_mu->Divide(&h_all_mu_pt);
+
+  TH1D *h_efficent_mu = (TH1D*)h_gen_selected_mu_pt.Clone("Efficiency_muons");
+  h_efficent_mu->Divide(&h_gen_matched_mu_pt);
+
+  TH1D *h_acc_eff_mu = (TH1D*)h_gen_selected_mu_pt.Clone("Acceptance x Efficiency_muons");
+  h_acc_eff_mu->Divide(&h_all_mu_pt);
+
+  TEfficiency* pAcc_el = 0;
+  TFile* pFile = new TFile("myfile.root","recreate");
+  
+  //h_pass and h_total are valid and consistent histograms
+  if(TEfficiency::CheckConsistency(h_gen_matched_ele_pt,h_all_ele_pt))
+  {
+    pAcc_el = new TEfficiency(h_gen_matched_ele_pt,h_all_ele_pt);
+    //this will attach the TEfficiency object to the current directory
+    pAcc_el->SetDirectory(gDirectory);
+    //now all objects in gDirectory will be written to "myfile.root"
+    pFile->Write();
+  }
+    
   // --------------------------------------------------------------------------
   // Write output
   // --------------------------------------------------------------------------
