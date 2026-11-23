@@ -17,7 +17,7 @@ CMS.SetExtraText("Simulation")
 # OPEN ROOT FILE
 # --------------------------------------------------
 
-f = ROOT.TFile.Open("tutorial_output.root")
+f = ROOT.TFile.Open("Output.root")
 
 if not f or f.IsZombie():
     raise RuntimeError("Cannot open ROOT file!")
@@ -27,15 +27,18 @@ if not f or f.IsZombie():
 # --------------------------------------------------
 
 histograms = [
-    ("No_cut_ele_pt", "Electron p_{T}", "p_{T} [GeV]"),
-    ("Reco_ele_pt", "Electron p_{T}", "p_{T} [GeV]"),
-    ("Gen_ele_pt", "Electron p_{T}", "p_{T} [GeV]"),
-    #("good_muon_pt", "Good Muon p_{T}", "p_{T} [GeV]"),
-    #("good_muon_eta", "Good Muon pseudorapidity", "#eta"),
-    #("good_muon_dxy", "Good Muon transverse IP", "d_{xy} [cm]"),
-    #("good_muon_dz", "Good Muon longitudinal IP", "d_{z} [cm]"),
-    #("muon_phi1", "Leading Muon azimuthal angle", "#phi"),
-    #("muon_phi2", "Subleading Muon azimuthal angle", "#phi")
+    ("Muon_Acceptance", "-1", "p_{T} [GeV]"),
+    ("Muon_Efficiency", "-1", "p_{T} [GeV]"),
+    ("Muon_Acc*Eff", "-1", "p_{T} [GeV]"),
+    ("Electron_Acceptance", "-1", "p_{T} [GeV]"),
+    ("Electron_Efficiency", "-1", "p_{T} [GeV]"),
+    ("Electron_Acc*Eff", "-1", "p_{T} [GeV]"),
+    ("Muon_Acceptance_eta", "-1", "{eta}"),
+    ("Muon_Efficiency_eta", "-1", "{eta}"),
+    ("Muon_Acc*Eff_eta", "-1", "{eta}"),
+    ("Electron_Acceptance_eta", "-1", "{eta}"),
+    ("Electron_Efficiency_eta", "-1", "{eta}"),
+    ("Electron_Acc*Eff_eta", "-1", "{eta}"),
 ]
 
 # --------------------------------------------------
@@ -57,7 +60,7 @@ for hist_name, title, x_title in histograms:
 
     h.SetTitle(title)
     h.GetXaxis().SetTitle(x_title)
-    h.GetYaxis().SetTitle("Events")
+    h.GetYaxis().SetTitle("P_{T}")
 
     # Logarithmic y-axis only for phi
     if hist_name == "muon_phi1" or hist_name == "muon_phi2":
@@ -74,7 +77,7 @@ for hist_name, title, x_title in histograms:
     # Save individual plots
     c.SaveAs(f"{hist_name}.png")
 
-    print(f"Saved: {hist_name}.pdf and {hist_name}.png")
+    print(f"Saved:{hist_name}.png")
 
     c.Close()
 

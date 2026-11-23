@@ -786,7 +786,7 @@ int main(int argc, char** argv) {
   // Open existing ROOT file
   TFile* pFile = new TFile("Output.root", "RECREATE");
   pFile->cd();
-  pAcc_mu = new TEfficiency(h_gen_selected_mu_pt, h_all_mu_pt);
+  pAcc_mu = new TEfficiency(h_gen_matched_mu_pt, h_all_mu_pt);
   pEff_mu = new TEfficiency(h_gen_selected_mu_pt,h_gen_matched_mu_pt);
   pAccEff_mu = new TEfficiency(h_gen_selected_mu_pt,h_all_mu_pt);
   // Attach TEfficiency to the current directory
@@ -807,7 +807,7 @@ int main(int argc, char** argv) {
   // Open existing ROOT file
   TFile* hFile = new TFile("Output.root", "UPDATE");
   hFile->cd();
-  pAcc_el = new TEfficiency(h_gen_selected_ele_pt, h_all_ele_pt);
+  pAcc_el = new TEfficiency(h_gen_matched_ele_pt, h_all_ele_pt);
   pEff_el = new TEfficiency(h_gen_selected_ele_pt,h_gen_matched_ele_pt);
   pAccEff_el = new TEfficiency(h_gen_selected_ele_pt,h_all_ele_pt);
   // Attach TEfficiency to the current directory
@@ -828,7 +828,7 @@ int main(int argc, char** argv) {
   // Open existing ROOT file
   TFile* jFile = new TFile("Output.root", "UPDATE");
   jFile->cd();
-  pAcc_el_eta = new TEfficiency(h_gen_selected_ele_eta, h_all_ele_eta);
+  pAcc_el_eta = new TEfficiency(h_gen_matched_ele_eta, h_all_ele_eta);
   pEff_el_eta = new TEfficiency(h_gen_selected_ele_eta,h_gen_matched_ele_eta);
   pAccEff_el_eta = new TEfficiency(h_gen_selected_ele_eta,h_all_ele_eta);
   // Attach TEfficiency to the current directory
@@ -849,7 +849,7 @@ int main(int argc, char** argv) {
   // Open existing ROOT file
   TFile* nFile = new TFile("Output.root", "UPDATE");
   nFile->cd();
-  pAcc_mu_eta = new TEfficiency(h_gen_selected_mu_eta, h_all_mu_eta);
+  pAcc_mu_eta = new TEfficiency(h_gen_matched_mu_eta, h_all_mu_eta);
   pEff_mu_eta = new TEfficiency(h_gen_selected_mu_eta,h_gen_matched_mu_eta);
   pAccEff_mu_eta = new TEfficiency(h_gen_selected_mu_eta,h_all_mu_eta);
   // Attach TEfficiency to the current directory
