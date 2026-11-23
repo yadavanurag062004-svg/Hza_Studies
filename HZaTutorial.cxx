@@ -570,48 +570,33 @@ int main(int argc, char** argv) {
     // Electron loop
     // Reco electron: no cuts
     for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      // no cuts
       h_all_ele_pt.Fill(Electron_pt[i], w);
       h_all_ele_eta.Fill(Electron_eta[i], w);
-    }
 
-    // Reco Electron + ID cuts + Gen electrons
-    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
-      bool matched = false;
-       if (Electron_mvaIso_WP90[i] == true && Electron_pt[i] > 25 && std::abs(Electron_eta[i]) < 2.5 && Electron_mvaIso_WP90[i] && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 ){
-          for (size_t j = 0; j < GenPart_pt.GetSize(); ++j) {
-            if (std::abs(GenPart_pdgId[j]) != 11 || std::abs(GenPart_status[j]) != 1 || GenPart_pt[j] < 5 || std::abs(GenPart_eta[i]) > 2.5)
-            continue;
-            double dR = DeltaR(Electron_eta[i], Electron_phi[i],GenPart_eta[j], GenPart_phi[j]);
-            if (dR < 0.3) {
-            matched = true;
-            break;
-          }
-        }
-         if (matched) {
-          h_gen_selected_ele_pt.Fill(Electron_pt[i], w);
-          h_gen_selected_ele_eta.Fill(Electron_eta[i], w);
-        }
-      } 
-      
-    }
-
-    // Reconstructed electrons + Gen electrons
-    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      // gen matched (for acceptance)
       bool matched = false;
       for (size_t j = 0; j < GenPart_pt.GetSize(); ++j) {
-        if (std::abs(GenPart_pdgId[j]) != 11 || std::abs(GenPart_status[j]) != 1)
+        if (std::abs(GenPart_pdgId[j]) != 11 || std::abs(GenPart_status[j]) != 1 || GenPart_pt[j] < 5 || std::abs(GenPart_eta[j]) > 2.5)
         continue;
         double dR = DeltaR(Electron_eta[i], Electron_phi[i],GenPart_eta[j], GenPart_phi[j]);
-          if (dR < 0.3) {
-            matched = true;
-            break;
-          }
+        if (dR < 0.3) {
+          matched = true;
+          break;
         }
-
-        if (matched) {
-        h_gen_matched_ele_pt.Fill(Electron_pt[i], w);
-        h_gen_matched_ele_eta.Fill(Electron_eta[i], w);
       }
+      if (!matched) continue;
+      // if matched, fill histograms for selected electrons (for acceptance and efficiency)
+      h_gen_matched_ele_pt.Fill(Electron_pt[i], w);
+      h_gen_matched_ele_eta.Fill(Electron_eta[i], w);
+
+      //&& std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10)
+      if (!(Electron_mvaIso_WP90[i] && Electron_pt[i] > 25 && Electron_pfRelIso03_all[i] < 0.15 && std::abs(Electron_eta[i]) < 2.4 )) continue;
+      // if pass selection, fill histograms for selected electrons (efficiency)
+      h_gen_selected_ele_pt.Fill(Electron_pt[i], w);
+      h_gen_selected_ele_eta.Fill(Electron_eta[i], w);
+      
+      
     }
 
     // Muon loop
@@ -794,18 +779,90 @@ int main(int argc, char** argv) {
   TH1D *h_acc_eff_mu = (TH1D*)h_gen_selected_mu_pt.Clone("Acceptance x Efficiency_muons");
   h_acc_eff_mu->Divide(&h_all_mu_pt);
 
+  TEfficiency* pAcc_mu = 0;
+  TEfficiency* pEff_mu = 0;
+  TEfficiency* pAccEff_mu = 0;
+
+  // Open existing ROOT file
+  TFile* pFile = new TFile("Output.root", "RECREATE");
+  pFile->cd();
+  pAcc_mu = new TEfficiency(h_gen_selected_mu_pt, h_all_mu_pt);
+  pEff_mu = new TEfficiency(h_gen_selected_mu_pt,h_gen_matched_mu_pt);
+  pAccEff_mu = new TEfficiency(h_gen_selected_mu_pt,h_all_mu_pt);
+  // Attach TEfficiency to the current directory
+  pAcc_mu->SetDirectory(gDirectory);
+  pEff_mu->SetDirectory(gDirectory);
+  pAccEff_mu->SetDirectory(gDirectory);
+  // Write efficiency objec
+  pAcc_mu->Write("Muon_Acceptance", TObject::kOverwrite);
+  pEff_mu->Write("Muon_Efficiency", TObject::kOverwrite);
+  pAccEff_mu->Write("Muon_Acc*Eff", TObject::kOverwrite);
+  // Close file
+  pFile->Close();
+ 
   TEfficiency* pAcc_el = 0;
-  TFile* pFile = new TFile("myfile.root","recreate");
-  
-  //h_pass and h_total are valid and consistent histograms
-  if(TEfficiency::CheckConsistency(h_gen_matched_ele_pt,h_all_ele_pt))
-  {
-    pAcc_el = new TEfficiency(h_gen_matched_ele_pt,h_all_ele_pt);
-    //this will attach the TEfficiency object to the current directory
-    pAcc_el->SetDirectory(gDirectory);
-    //now all objects in gDirectory will be written to "myfile.root"
-    pFile->Write();
-  }
+  TEfficiency* pEff_el = 0;
+  TEfficiency* pAccEff_el = 0;
+
+  // Open existing ROOT file
+  TFile* hFile = new TFile("Output.root", "UPDATE");
+  hFile->cd();
+  pAcc_el = new TEfficiency(h_gen_selected_ele_pt, h_all_ele_pt);
+  pEff_el = new TEfficiency(h_gen_selected_ele_pt,h_gen_matched_ele_pt);
+  pAccEff_el = new TEfficiency(h_gen_selected_ele_pt,h_all_ele_pt);
+  // Attach TEfficiency to the current directory
+  pAcc_el->SetDirectory(gDirectory);
+  pEff_el->SetDirectory(gDirectory);
+  pAccEff_el->SetDirectory(gDirectory);
+  // Write efficiency objec
+  pAcc_el->Write("Electron_Acceptance", TObject::kOverwrite);
+  pEff_el->Write("Electron_Efficiency", TObject::kOverwrite);
+  pAccEff_el->Write("Electron_Acc*Eff", TObject::kOverwrite);
+  // Close file
+  hFile->Close();
+
+  TEfficiency* pAcc_el_eta = 0;
+  TEfficiency* pEff_el_eta = 0;
+  TEfficiency* pAccEff_el_eta = 0;
+
+  // Open existing ROOT file
+  TFile* jFile = new TFile("Output.root", "UPDATE");
+  jFile->cd();
+  pAcc_el_eta = new TEfficiency(h_gen_selected_ele_eta, h_all_ele_eta);
+  pEff_el_eta = new TEfficiency(h_gen_selected_ele_eta,h_gen_matched_ele_eta);
+  pAccEff_el_eta = new TEfficiency(h_gen_selected_ele_eta,h_all_ele_eta);
+  // Attach TEfficiency to the current directory
+  pAcc_el_eta->SetDirectory(gDirectory);
+  pEff_el_eta->SetDirectory(gDirectory);
+  pAccEff_el_eta->SetDirectory(gDirectory);
+  // Write efficiency objec
+  pAcc_el_eta->Write("Electron_Acceptance_eta", TObject::kOverwrite);
+  pEff_el_eta->Write("Electron_Efficiency_eta", TObject::kOverwrite);
+  pAccEff_el_eta->Write("Electron_Acc*Eff_eta", TObject::kOverwrite);
+  // Close file
+  jFile->Close();
+
+  TEfficiency* pAcc_mu_eta = 0;
+  TEfficiency* pEff_mu_eta = 0;
+  TEfficiency* pAccEff_mu_eta = 0;
+
+  // Open existing ROOT file
+  TFile* nFile = new TFile("Output.root", "UPDATE");
+  nFile->cd();
+  pAcc_mu_eta = new TEfficiency(h_gen_selected_mu_eta, h_all_mu_eta);
+  pEff_mu_eta = new TEfficiency(h_gen_selected_mu_eta,h_gen_matched_mu_eta);
+  pAccEff_mu_eta = new TEfficiency(h_gen_selected_mu_eta,h_all_mu_eta);
+  // Attach TEfficiency to the current directory
+  pAcc_mu_eta->SetDirectory(gDirectory);
+  pEff_mu_eta->SetDirectory(gDirectory);
+  pAccEff_mu_eta->SetDirectory(gDirectory);
+  // Write efficiency objec
+  pAcc_mu_eta->Write("Muon_Acceptance_eta", TObject::kOverwrite);
+  pEff_mu_eta->Write("Muon_Efficiency_eta", TObject::kOverwrite);
+  pAccEff_mu_eta->Write("Muon_Acc*Eff_eta", TObject::kOverwrite);
+  // Close file
+  nFile->Close();
+
     
   // --------------------------------------------------------------------------
   // Write output
