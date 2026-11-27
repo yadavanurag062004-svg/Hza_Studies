@@ -14,6 +14,14 @@
 #include <TVector2.h>
 #include <TEfficiency.h> 
 
+
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TLatex.h"
+#include "TAxis.h"
+#include <TROOT.h>
+#include "TGraphAsymmErrors.h"
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -29,14 +37,18 @@ const char* kElectronTrigger = "HLT_Ele30_WPTight_Gsf";
 
 const std::string kDefaultFilelist = "signal_mA1p0GeV.txt";
 const std::string kDefaultOutput   = "tutorial_output.root";
-
+// ----------------------------------------------------------------------------
+// Constants
+// ----------------------------------------------------------------------------
+const float Z_MASS = 91.2; // GeV
+const float Z_MASS_WIND = 15; // GeV
 // ----------------------------------------------------------------------------
 // Small helper functions
 // ----------------------------------------------------------------------------
+
 float DeltaPhi(float phi1, float phi2) {
   return TVector2::Phi_mpi_pi(phi1 - phi2);
 }
-
 
 int FindZMother (short idx, TTreeReaderArray<Int_t> &GenPart_pdgId, TTreeReaderArray<Short_t> &GenPart_genPartIdxMother) {
   int genpart_pdgid = GenPart_pdgId[idx];
@@ -154,6 +166,8 @@ int main(int argc, char** argv) {
   TTreeReaderArray<Float_t> Electron_pfRelIso03_all(reader, "Electron_pfRelIso03_all");
   TTreeReaderArray<Float_t> Electron_dxy(reader,"Electron_dxy");
   TTreeReaderArray<Float_t> Electron_dz(reader,"Electron_dz");
+  TTreeReaderArray<Int_t>  Electron_genPartFlav(reader, "Electron_genPartFlav");
+
   // GenParts 
   TTreeReaderArray<Float_t> GenPart_pt(reader,"GenPart_pt");
   TTreeReaderArray<Float_t> GenPart_eta(reader,"GenPart_eta");
@@ -319,7 +333,8 @@ int main(int argc, char** argv) {
   TH1D h_H_mumu("H_mumu", ";p_{T}^{ll+jet} [GeV];Events", 50, 0, 200);
   TH1D h_H_ee("H_ee", ";p_{T}^{ll+jet} [GeV];Events", 50, 0, 200);
 
-  TH1D h_Z_mass("Z_mass", ";m_{ll} [GeV];Events", 60, 60, 120);
+  TH1D h_Z_mumu("Z_mumu", ";m_{mumu} [GeV];Events", 85, 70, 110);
+  TH1D h_Z_ee("Z_ee", ";m_{ee} [GeV];Events", 85, 70, 110);
   TH1D h_Z_pt("Z_pt", ";p_{T}^{ll} [GeV];Events", 50, 0, 200);
   TH1D h_a_mass("a_mass", ";m_{a} [GeV];Events", 50, 0, 20);
   TH1D h_a_pt("a_pt", ";p_{T}^{a} [GeV];Events", 50, 0, 200);
@@ -363,7 +378,10 @@ int main(int argc, char** argv) {
     std::vector<TLorentzVector> good_muons;
     std::vector<TLorentzVector> isolated_muons;
     std::vector<TLorentzVector> sfos_muons;
+    std::vector<TLorentzVector> muon_combs;
     TLorentzVector mu;
+    TLorentzVector mu1;
+    TLorentzVector mu2;
 
     std::vector<TLorentzVector> all_electrons;
     std::vector<TLorentzVector> good_electrons;
@@ -371,6 +389,9 @@ int main(int argc, char** argv) {
     std::vector<TLorentzVector> isolated_electrons;
     std::vector<TLorentzVector> sfos_electrons;
     TLorentzVector ele;
+    TLorentzVector ele1;
+    TLorentzVector ele2;
+    
 
     std::vector<TLorentzVector> GenPartlept;
     std::vector<TLorentzVector> GenPartMother;
@@ -421,7 +442,7 @@ int main(int argc, char** argv) {
       mu.SetPtEtaPhiM(Muon_pt[i],Muon_eta[i],Muon_phi[i],Muon_mass[i]);
       // save all muon four vectors
       all_muons.push_back(mu); // Check for charge 
-      // check pt and eta
+      // check pt and eta 
       if (Muon_pt[i] > 25 && std::abs(Muon_eta[i]) < 2.5 && Muon_tightId[i] == true) {
         h_good_muon_dxy.Fill(Muon_dxy[i],w);
         h_good_muon_dz.Fill(Muon_dz[i],w);
@@ -571,6 +592,7 @@ int main(int argc, char** argv) {
     // Reco electron: no cuts
     for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
       // no cuts
+     // if (!(Electron_genPartFlav[i] == 1)) continue;
       h_all_ele_pt.Fill(Electron_pt[i], w);
       h_all_ele_eta.Fill(Electron_eta[i], w);
 
@@ -581,24 +603,24 @@ int main(int argc, char** argv) {
         continue;
         double dR = DeltaR(Electron_eta[i], Electron_phi[i],GenPart_eta[j], GenPart_phi[j]);
         if (dR < 0.3) {
-          matched = true;
+         matched = true;
           break;
-        }
+         } 
       }
+      
       if (!matched) continue;
       // if matched, fill histograms for selected electrons (for acceptance and efficiency)
       h_gen_matched_ele_pt.Fill(Electron_pt[i], w);
       h_gen_matched_ele_eta.Fill(Electron_eta[i], w);
 
-      //&& std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10)
-      if (!(Electron_mvaIso_WP90[i] && Electron_pt[i] > 25 && Electron_pfRelIso03_all[i] < 0.15 && std::abs(Electron_eta[i]) < 2.4 )) continue;
+      //&& std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i]) < 0.10 ) && Electron_mvaIso_WP90[i] )
+      if (!(Electron_mvaIso_WP90[i] && Electron_pt[i] > 25 && Electron_pfRelIso03_all[i] < 0.15 && std::abs(Electron_eta[i]) < 2.4 && std::abs(Electron_dxy[i]) < 0.05 && std::abs(Electron_dz[i])< 0.10 )) continue;
       // if pass selection, fill histograms for selected electrons (efficiency)
       h_gen_selected_ele_pt.Fill(Electron_pt[i], w);
       h_gen_selected_ele_eta.Fill(Electron_eta[i], w);
       
-      
+    
     }
-
     // Muon loop
     for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
       // no cuts
@@ -611,7 +633,7 @@ int main(int argc, char** argv) {
         if (std::abs(GenPart_pdgId[j]) != 13 || std::abs(GenPart_status[j]) != 1 || GenPart_pt[j] < 5 || std::abs(GenPart_eta[j]) > 2.5)
         continue;
         double dR = DeltaR(Muon_eta[i], Muon_phi[i],GenPart_eta[j], GenPart_phi[j]);
-        if (dR < 0.3) {
+        if (dR < 0.3){
           matched = true;
           break;
         }
@@ -625,8 +647,36 @@ int main(int argc, char** argv) {
       // if pass selection, fill histograms for selected muons (efficiency)
       h_gen_selected_mu_pt.Fill(Muon_pt[i], w);
       h_gen_selected_mu_eta.Fill(Muon_eta[i], w);
+    } 
+    
+    for (size_t i = 0; i < Muon_pt.GetSize(); ++i) {
+      if (Muon_pt[i] < 25 || std::abs(Muon_eta[i]) > 2.5 || (!Muon_tightId[i]) || Muon_pfRelIso04_all[i] >0.15)continue;
+      for (size_t j = i + 1; j < Muon_pt.GetSize(); ++j) {
+        if (Muon_pt[j] < 25 || std::abs(Muon_eta[j]) > 2.5 || (!Muon_tightId[j]) || Muon_pfRelIso04_all[j] > 0.15) continue;
+        if (Muon_charge[i] * Muon_charge[j] >= 0) continue;
+        mu1.SetPtEtaPhiM(Muon_pt[i],Muon_eta[i],Muon_phi[i],Muon_mass[i]);
+        mu2.SetPtEtaPhiM(Muon_pt[j],Muon_eta[j],Muon_phi[j],Muon_mass[j]);
+        TLorentzVector Z = mu1 + mu2;
+        if (std::abs(Z.M()- 91.2)<Z_MASS_WIND){
+          h_Z_mumu.Fill(Z.M(),w);
+        }
+      }
     }
     
+    for (size_t i = 0; i < Electron_pt.GetSize(); ++i) {
+      if (Electron_pt[i] < 28 || std::abs(Electron_eta[i]) > 2.5 || (!(Electron_mvaIso_WP90[i])) || std::abs(Electron_dxy[i]) > 0.05 || std::abs(Electron_dz[i]) > 0.10)continue;
+      for (size_t j = i + 1; j < Electron_pt.GetSize(); ++j) {
+        if (Electron_pt[j] < 28 || std::abs(Electron_eta[j]) > 2.5 || (!(Electron_mvaIso_WP90[j])) || std::abs(Electron_dxy[j]) > 0.05 || std::abs(Electron_dz[j]) > 0.10) continue;
+        if (Electron_charge[i] * Electron_charge[j] >= 0) continue;
+        ele1.SetPtEtaPhiM(Electron_pt[i],Electron_eta[i],Electron_phi[i],Electron_mass[i]);
+        ele2.SetPtEtaPhiM(Electron_pt[j],Electron_eta[j],Electron_phi[j],Electron_mass[j]);
+        TLorentzVector Z_ee = ele1 + ele2;
+        if (std::abs(Z_ee.M()- 91.2)<Z_MASS_WIND){
+          h_Z_ee.Fill(Z_ee.M(),w);
+        }
+      }
+    }
+
     // Example: build a four-vector of a muon
     //   TLorentzVector mu;
     //   mu.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
@@ -657,62 +707,89 @@ int main(int argc, char** argv) {
     TLorentzVector Z_mumu_all;
     if (all_muons.size() >= 2) {
       Z_mumu_all = all_muons[0] + all_muons[1];
-      h_Z_mass_mumu_all.Fill(Z_mumu_all.M());
+      if (Z_mumu_all.M()>75 && Z_mumu_all.M() < 105){
+        h_Z_mass_mumu_all.Fill(Z_mumu_all.M());
+      }
     }
-
+    
     TLorentzVector Z_Gen_ee_good;
     if (good_GPelectron.size() >=2){
       Z_Gen_ee_good = good_GPelectron[0] + good_GPelectron[1];
-      h_Z_mass_Gen_ee_good.Fill(Z_Gen_ee_good.M());
+      if (Z_Gen_ee_good.M()>75 && Z_Gen_ee_good.M()<105){
+        h_Z_mass_Gen_ee_good.Fill(Z_Gen_ee_good.M());
+      }
     }
+    
 
     TLorentzVector Z_Gen_mumu_good;
     if (good_GPmuon.size() >=2){
       Z_Gen_mumu_good = good_GPmuon[0] + good_GPmuon[1];
+      if (Z_Gen_mumu_good.M()>75 && Z_Gen_mumu_good.M()<105){
       h_Z_mass_Gen_mumu_good.Fill(Z_Gen_mumu_good.M());
+      }
     }
+    
 
     TLorentzVector Z_mumu_good;
     if (good_muons.size() >= 2) {
       Z_mumu_good = good_muons[0] + good_muons[1];
+      if(Z_mumu_good.M()>75 && Z_mumu_good.M()<105){
       h_Z_mass_mumu_good.Fill(Z_mumu_good.M());
+      }
     }
+    
 
     TLorentzVector Z_mumu_isolated;
     if (isolated_muons.size() >= 2) {
       Z_mumu_isolated = isolated_muons[0] + isolated_muons[1];
-      h_Z_mass_mumu_isolated.Fill(Z_mumu_isolated.M());
+      if (Z_mumu_isolated.M()>75 && Z_mumu_isolated.M()< 105){
+        h_Z_mass_mumu_isolated.Fill(Z_mumu_isolated.M());
+      }
     }
     
     TLorentzVector Z_mumu_sfos;
     if (sfos_muons.size() >= 2) {
       Z_mumu_sfos = sfos_muons[0] + sfos_muons[1];
-      h_Z_mass_mumu_sfos.Fill(Z_mumu_sfos.M());
+      if (Z_mumu_sfos.M()>75 && Z_mumu_sfos.M()<105){
+        h_Z_mass_mumu_sfos.Fill(Z_mumu_sfos.M());  
+      }
     }
+    
 
     TLorentzVector Z_ee_all;
     if (all_electrons.size() >= 2) {
       Z_ee_all = all_electrons[0] + all_electrons[1];
-      h_Z_mass_ee_all.Fill(Z_ee_all.M());
+      if (Z_ee_all.M()>75 && Z_ee_all.M()<105){
+        h_Z_mass_ee_all.Fill(Z_ee_all.M());
+      }
     }
+    
 
     TLorentzVector Z_ee_good;
     if (good_electrons.size() >= 2) {
       Z_ee_good = good_electrons[0] + good_electrons[1];
-      h_Z_mass_ee_good.Fill(Z_ee_good.M());
+      if (Z_ee_good.M()>75 && Z_ee_good.M()<105){
+        h_Z_mass_ee_good.Fill(Z_ee_good.M());  
+      }
     }
-
+    
+    
     TLorentzVector Z_ee_isolated;
     if (isolated_electrons.size() >= 2) {
       Z_ee_isolated = isolated_electrons[0] + isolated_electrons[1];
-      h_Z_mass_ee_isolated.Fill(Z_ee_isolated.M());
+      if (Z_ee_isolated.M()>75 && Z_ee_isolated.M()<105){
+        h_Z_mass_ee_isolated.Fill(Z_ee_isolated.M());
+      }
     }
-
+    
     TLorentzVector Z_ee_sfos;
     if (sfos_electrons.size() >= 2) {
       Z_ee_sfos = sfos_electrons[0] + sfos_electrons[1];
-      h_Z_mass_ee_sfos.Fill(Z_ee_sfos.M());
+      if (Z_ee_sfos.M()>75 && Z_ee_sfos.M()<105){
+        h_Z_mass_ee_sfos.Fill(Z_ee_sfos.M());
+      } 
     }
+    
 
     TLorentzVector a_all_jets;
     if (all_jets.size() >= 2) {
@@ -738,7 +815,6 @@ int main(int argc, char** argv) {
       h_H_ee.Fill(H_ee_good_jet.M(), w);
     }
 
-
     // TLorentzVector H 
 
     // ... your code here ...
@@ -758,6 +834,18 @@ int main(int argc, char** argv) {
     // h_H_mass.Fill(H.M(), w);
     // h_H_pt.Fill(H.Pt(), w);
   }
+  /* h_Z_mass_mumu_all.Fit("gaus");
+  h_Z_mass_Gen_ee_good.Fit("gaus");
+  h_Z_mass_Gen_mumu_good.Fit("gaus");
+  h_Z_mass_mumu_good.Fit("gaus");
+  h_Z_mass_mumu_isolated.Fit("gaus");
+  h_Z_mass_mumu_sfos.Fit("gaus");
+  h_Z_mass_ee_good.Fit("gaus");
+  h_Z_mass_ee_all.Fit("gaus");
+  h_Z_mass_ee_sfos.Fit("gaus");
+  h_Z_mass_ee_isolated.Fit("gaus");
+ */
+
   // Accepatnce and efficiency histograms 
   //Electrons 
   TH1D *h_accept_el = (TH1D*)h_gen_matched_ele_pt.Clone("Acceptance_electrons");
@@ -862,8 +950,8 @@ int main(int argc, char** argv) {
   pAccEff_mu_eta->Write("Muon_Acc*Eff_eta", TObject::kOverwrite);
   // Close file
   nFile->Close();
-
-    
+  
+  
   // --------------------------------------------------------------------------
   // Write output
   // --------------------------------------------------------------------------
